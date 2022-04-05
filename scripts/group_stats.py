@@ -47,3 +47,18 @@ def find_mutual(signals_a,signals_b):
         pmfy,_ = np.histogram(y,bins)
         return mutual_info_score(pmfx,pmfy)
     find_group_stat(signals_a,signals_b,get_mutual_info)
+
+def custom_correlation(signalsa,signalsb,std = 1):
+    nsiga = signalsa.shape[1]
+    nsigb = signalsb.shape[1]
+    corr = np.zeros([nsiga,nsigb])
+    stats = np.zeros([nsiga,nsigb])
+    for i in range(nsiga):
+        for j in range(nsigb):
+            siga = signalsa[:,i]
+            sigb = signalsb[:,i]
+            include = np.logical_or(np.abs(siga)>std*np.std(siga),np.abs(sigb)>std*np.std(sigb))
+            siga = siga[include]
+            sigb = sigb[include]
+            corr[i,j],stats[i,j] = scipy.stats.pearsonr(siga,sigb)
+    return corr,stats

@@ -4,8 +4,7 @@ import numpy as np
 from sklearn.metrics import mutual_info_score
 from sklearn.decomposition import FastICA
 from statsmodels.stats.diagnostic import acorr_ljungbox
-from scipy.ndimage import gaussian_filter1d
-from sklearn.preprocessing import normalize
+from signal_utilities import custom_norm
 import mne
 
 def get_mutual_information(x,y):
@@ -95,20 +94,6 @@ def get_emg_ica(ica_function = fast_ica_analysis):
     time_dependent_sources = get_time_independent_signal(EMG_transformed)
     return time_dependent_sources
 
-def calculate_power_of_signal(signals):
-    rectified = np.abs(signals)
-    power = gaussian_filter_signal(rectified)
-    return power
-
-def gaussian_filter_signal(signals):
-    filtered = []
-    for i in range(signals.shape[1]):
-        filtered.append(gaussian_filter1d(signals[:,i],sigma = 50))
-    filtered = np.array(filtered).T
-    filtered = custom_norm(filtered)
-    return filtered
-
-
 def get_glove_data():
     io = FileIO()
     exps = io.load_experiment('s1')
@@ -120,22 +105,6 @@ def get_glove_ica():
     transformer = FastICA(random_state=1)
     gloves_transformed = transformer.fit_transform(gloves)
     return gloves_transformed
-
-def normalize_range(signal):
-    min = np.min(signal)
-    max = np.max(signal)
-    norm_factor = max - min
-    return (signal-min)/norm_factor
-
-def standardize(signal):
-    return (signal-np.mean(signal))/np.std(signal)
-
-def custom_norm(signals,norm_function = standardize):
-    nsig = signals.shape[1]
-    normed_signal = np.zeros(signals.shape)
-    for sigi in range(nsig):
-        normed_signal[:,sigi] = norm_function(signals[:,sigi])
-    return normed_signal
 
 def get_emg_and_glove_components(ica_function = fast_ica_analysis,norm_function = custom_norm):
     time_dependent_sources = get_emg_ica(ica_function = ica_function)
